@@ -1,0 +1,10 @@
+.
+node_modules
+.env.local
+.env
+.next
+.vercel
+.kilocode
+.github
+certificates
+.env*

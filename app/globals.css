@@ -1,0 +1,318 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Courier+Prime:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark arcade theme - deep blue-black background */
+    --background: 222 47% 6%;
+    --foreground: 180 100% 95%;
+    
+    /* Cards have subtle elevation */
+    --card: 222 47% 9%;
+    --card-foreground: 180 100% 95%;
+    
+    --popover: 222 47% 11%;
+    --popover-foreground: 180 100% 95%;
+    
+    /* Primary: Neon cyan */
+    --primary: 180 100% 50%;
+    --primary-foreground: 222 47% 6%;
+    
+    /* Secondary: Neon magenta/pink */
+    --secondary: 320 100% 60%;
+    --secondary-foreground: 222 47% 6%;
+    
+    --muted: 222 30% 15%;
+    --muted-foreground: 180 20% 60%;
+    
+    /* Accent: Electric green */
+    --accent: 145 100% 50%;
+    --accent-foreground: 222 47% 6%;
+    
+    /* Destructive: Neon red */
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 222 30% 20%;
+    --input: 222 30% 15%;
+    --ring: 180 100% 50%;
+    
+    /* Game-specific colors for image generation */
+    --health: 0 100% 50%;
+    --health-foreground: 0 0% 100%;
+    --xp: 280 100% 60%;
+    --xp-foreground: 0 0% 100%;
+    --gold: 45 100% 50%;
+    --gold-foreground: 222 47% 6%;
+    --crit: 45 100% 60%;
+    
+    /* Chart colors for stats */
+    --chart-1: 180 100% 50%;
+    --chart-2: 320 100% 60%;
+    --chart-3: 145 100% 50%;
+    --chart-4: 45 100% 50%;
+    --chart-5: 0 100% 60%;
+    
+    --radius: 0.25rem;
+    
+    /* Sidebar (same dark theme) */
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 180 100% 95%;
+    --sidebar-primary: 180 100% 50%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 30% 15%;
+    --sidebar-accent-foreground: 180 100% 95%;
+    --sidebar-border: 222 30% 20%;
+    --sidebar-ring: 180 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Retro arcade specific styles */
+@layer components {
+  /* Pixel-perfect borders */
+  .pixel-border {
+    @apply border-2;
+    box-shadow: 
+      2px 0 0 0 hsl(var(--border)),
+      -2px 0 0 0 hsl(var(--border)),
+      0 2px 0 0 hsl(var(--border)),
+      0 -2px 0 0 hsl(var(--border));
+  }
+  
+  /* Neon glow effects */
+  .neon-cyan {
+    text-shadow: 
+      0 0 5px hsl(180 100% 50%),
+      0 0 10px hsl(180 100% 50%),
+      0 0 20px hsl(180 100% 50%);
+  }
+  
+  .neon-magenta {
+    text-shadow: 
+      0 0 5px hsl(320 100% 60%),
+      0 0 10px hsl(320 100% 60%),
+      0 0 20px hsl(320 100% 60%);
+  }
+  
+  .neon-green {
+    text-shadow: 
+      0 0 5px hsl(145 100% 50%),
+      0 0 10px hsl(145 100% 50%),
+      0 0 20px hsl(145 100% 50%);
+  }
+  
+  .neon-gold {
+    text-shadow: 
+      0 0 5px hsl(45 100% 50%),
+      0 0 10px hsl(45 100% 50%),
+      0 0 20px hsl(45 100% 50%);
+  }
+  
+  /* Box glow effects */
+  .glow-cyan {
+    box-shadow: 
+      0 0 5px hsl(180 100% 50%),
+      0 0 10px hsl(180 100% 50% / 0.5),
+      inset 0 0 5px hsl(180 100% 50% / 0.3);
+  }
+  
+  .glow-magenta {
+    box-shadow: 
+      0 0 5px hsl(320 100% 60%),
+      0 0 10px hsl(320 100% 60% / 0.5),
+      inset 0 0 5px hsl(320 100% 60% / 0.3);
+  }
+  
+  .glow-green {
+    box-shadow: 
+      0 0 5px hsl(145 100% 50%),
+      0 0 10px hsl(145 100% 50% / 0.5),
+      inset 0 0 5px hsl(145 100% 50% / 0.3);
+  }
+  
+  .glow-red {
+    box-shadow: 
+      0 0 5px hsl(0 100% 50%),
+      0 0 10px hsl(0 100% 50% / 0.5),
+      inset 0 0 5px hsl(0 100% 50% / 0.3);
+  }
+  
+  /* CRT scanline effect */
+  .scanlines {
+    position: relative;
+  }
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      hsl(0 0% 0% / 0.1) 2px,
+      hsl(0 0% 0% / 0.1) 4px
+    );
+    pointer-events: none;
+  }
+  
+  /* Health bar styling */
+  .health-bar {
+    @apply h-6 rounded-sm overflow-hidden;
+    background: linear-gradient(
+      180deg,
+      hsl(0 100% 30%) 0%,
+      hsl(0 100% 20%) 100%
+    );
+  }
+  
+  .health-bar-fill {
+    @apply h-full transition-all duration-300;
+    background: linear-gradient(
+      180deg,
+      hsl(0 100% 60%) 0%,
+      hsl(0 100% 45%) 50%,
+      hsl(0 100% 40%) 100%
+    );
+  }
+  
+  /* XP bar styling */
+  .xp-bar {
+    @apply h-3 rounded-sm overflow-hidden;
+    background: linear-gradient(
+      180deg,
+      hsl(280 50% 20%) 0%,
+      hsl(280 50% 15%) 100%
+    );
+  }
+  
+  .xp-bar-fill {
+    @apply h-full transition-all duration-500;
+    background: linear-gradient(
+      180deg,
+      hsl(280 100% 70%) 0%,
+      hsl(280 100% 55%) 50%,
+      hsl(280 100% 45%) 100%
+    );
+  }
+  
+  /* Arcade button style */
+  .arcade-btn {
+    @apply px-6 py-3 font-mono uppercase tracking-wider;
+    @apply border-2 border-primary;
+    @apply transition-all duration-150;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary) / 0.2) 0%,
+      hsl(var(--primary) / 0.1) 100%
+    );
+  }
+  
+  .arcade-btn:hover {
+    @apply glow-cyan;
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary) / 0.4) 0%,
+      hsl(var(--primary) / 0.2) 100%
+    );
+  }
+  
+  .arcade-btn:active {
+    transform: translateY(2px);
+  }
+  
+  /* Floating damage number animation */
+  @keyframes float-up {
+    0% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(-30px) scale(1.2);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-60px) scale(0.8);
+    }
+  }
+  
+  .damage-number {
+    animation: float-up 1s ease-out forwards;
+  }
+  
+  /* Boss shake animation */
+  @keyframes boss-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  
+  .boss-hit {
+    animation: boss-shake 0.5s ease-in-out;
+  }
+  
+  /* Pulse animation for active elements */
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 5px hsl(var(--primary)), 0 0 10px hsl(var(--primary) / 0.5);
+    }
+    50% { 
+      box-shadow: 0 0 15px hsl(var(--primary)), 0 0 30px hsl(var(--primary) / 0.5);
+    }
+  }
+  
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  /* Level up flash */
+  @keyframes level-up-flash {
+    0% { 
+      background: transparent;
+    }
+    50% { 
+      background: hsl(45 100% 50% / 0.3);
+    }
+    100% { 
+      background: transparent;
+    }
+  }
+  
+  .level-up {
+    animation: level-up-flash 0.5s ease-out 3;
+  }
+  
+  /* Crit flash */
+  @keyframes crit-flash {
+    0%, 100% { 
+      color: hsl(var(--crit));
+      text-shadow: 0 0 10px hsl(var(--crit)), 0 0 20px hsl(var(--crit));
+    }
+    50% { 
+      color: hsl(0 0% 100%);
+      text-shadow: 0 0 20px hsl(var(--crit)), 0 0 40px hsl(var(--crit));
+    }
+  }
+  
+  .crit-number {
+    animation: crit-flash 0.3s ease-in-out 2, float-up 1s ease-out forwards;
+  }
+}
