@@ -4,23 +4,23 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 font-mono text-xs tracking-widest uppercase transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-30 select-none',
+  'inline-flex items-center justify-center gap-2 font-mono text-xs font-semibold uppercase tracking-widest transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(180,100%,50%)] focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:pointer-events-none disabled:opacity-50 select-none',
   {
     variants: {
       variant: {
-        primary: 'border text-white',
-        ghost: 'text-[#7a6f6d] hover:text-[#f0eae8]',
-        outline: 'border text-[#f0eae8]',
-        danger: 'border text-red-400',
+        default: 'border border-[hsl(180,100%,50%)] text-[hsl(180,100%,50%)] hover:bg-[hsl(180,100%,50%)] hover:text-black hover:shadow-[0_0_20px_hsl(180,100%,50%/0.5)]',
+        secondary: 'border border-white/20 text-white/70 hover:border-[hsl(330,100%,55%)] hover:text-[hsl(330,100%,55%)] hover:shadow-[0_0_15px_hsl(330,100%,55%/0.3)]',
+        ghost: 'text-white/60 hover:text-white hover:bg-white/5',
+        danger: 'border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50',
       },
       size: {
-        sm: 'h-7 px-3 text-[10px]',
-        md: 'h-9 px-4 text-xs',
-        lg: 'h-11 px-6 text-xs',
-        icon: 'h-8 w-8',
+        sm: 'h-8 px-4 text-[10px]',
+        md: 'h-10 px-6',
+        lg: 'h-12 px-8 text-sm',
+        icon: 'h-10 w-10',
       },
     },
-    defaultVariants: { variant: 'primary', size: 'md' },
+    defaultVariants: { variant: 'default', size: 'md' },
   }
 )
 
@@ -30,23 +30,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, Var
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild, loading, children, style, ...props }, ref) => {
+  ({ className, variant, size, asChild, loading, children, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
-
-    const variantStyles: React.CSSProperties =
-      variant === 'primary' || !variant
-        ? { borderColor: '#ff2d78', background: 'rgba(255,45,120,0.08)', color: '#ff2d78' }
-        : variant === 'outline'
-        ? { borderColor: '#2a2a2a', background: '#111111', color: '#f0eae8' }
-        : variant === 'danger'
-        ? { borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)' }
-        : {}
 
     return (
       <Comp
         ref={ref}
         className={cn(buttonVariants({ variant, size, className }))}
-        style={{ ...variantStyles, ...style }}
         disabled={loading || props.disabled}
         {...props}
       >

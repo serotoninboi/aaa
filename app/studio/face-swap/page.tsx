@@ -1,12 +1,11 @@
 'use client'
+
 import { useState, useCallback } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { ImageInput } from '@/components/ImageInput'
 import { GeneratorHeader } from '@/components/GeneratorHeader'
-import { ResultCard } from '@/components/ResultCard'
-import { Slider } from '@/components/ui/slider'
-import { Alert } from '@/components/ui/alert'
-import { Label } from '@/components/ui/label'
+import { Users, Sparkles, Download } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 const SWAP_MODELS = [
   { value: 'inswapper_128.onnx', label: 'InSwapper 128 (Fast)' },
@@ -19,8 +18,6 @@ const FACE_RESTORE_MODELS = [
   { value: 'none', label: 'None' },
   { value: 'GPEN-BFR-512.onnx', label: 'GPEN-BFR-512' },
 ]
-
-const TARGET_INDICES = [0, 1, 2, 3, 4]
 
 export default function FaceSwapPage() {
   const { getToken } = useAuth()
@@ -102,19 +99,24 @@ export default function FaceSwapPage() {
   }
 
   return (
-    <div className="relative overflow-hidden py-12">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,45,120,0.12),_transparent_60%)]" />
-      <div className="relative z-10 mx-auto max-w-6xl space-y-8 px-4">
+    <div className="relative min-h-screen py-12 px-4">
+      <div className="relative z-10 mx-auto max-w-6xl space-y-8">
         <GeneratorHeader
           title="Face Swap"
-          description="Swap faces with AI-powered precision"
+          description="Transform faces with AI-powered precision. Upload a source face and target image to create stunning results."
+          icon={Users}
         />
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-          {/* Left Panel - Controls */}
-          <div className="space-y-6">
+        <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+          {/* Left Panel - Image Inputs */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="space-y-6"
+          >
             <ImageInput
-              label="Source (Face)"
+              label="Source Face"
               preview={sourcePreview}
               file={sourceImage}
               onFileChange={handleSourceImage}
@@ -125,7 +127,7 @@ export default function FaceSwapPage() {
             />
 
             <ImageInput
-              label="Target (Body)"
+              label="Target Image"
               preview={targetPreview}
               file={targetImage}
               onFileChange={handleTargetImage}
@@ -136,114 +138,164 @@ export default function FaceSwapPage() {
             />
 
             {error && (
-              <Alert variant="destructive" className="text-xs uppercase tracking-[0.3em]">
-                {error}
-              </Alert>
+              <div className="glass-sensual border-l-4 border-l-red-500/50 p-5">
+                <p className="font-sans text-sm text-red-300">{error}</p>
+              </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <button
                 onClick={handleSubmit}
                 disabled={!sourceImage || !targetImage || loading}
-                aria-busy={loading}
-                className="flex-1 rounded-2xl py-3 px-4 bg-gradient-to-r from-[#ff2d78] to-[#a55bff] text-white font-mono text-[11px] font-bold uppercase tracking-[0.4em] min-h-12 transition-all duration-150 hover:shadow-[0_0_25px_rgba(255,45,120,0.6)] focus:outline-none focus:ring-2 focus:ring-[#ff2d78] focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:shadow-none"
+                className="btn-sensual flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : 'Swap'}
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      <span>Generate</span>
+                    </>
+                  )}
+                </span>
               </button>
+              
               <button
                 onClick={clear}
-                className="rounded-2xl py-3 px-4 border-2 border-white/10 text-[#a08fb7] font-mono text-[11px] font-bold uppercase tracking-[0.4em] min-h-12 transition-all duration-150 hover:border-[#ff2d78] hover:text-white hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-black"
+                className="btn-subtle"
               >
                 Clear
               </button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Panel - Settings & Result */}
-          <div className="space-y-6">
-<div className="rounded-[32px] border border-white/10 bg-black/60 p-6 space-y-4 shadow-[0_20px_60px_rgba(0,0,0,0.85)] focus-within:border-white/20 transition-colors duration-200">
-            <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-[#a08fb7]">
-              Settings
-            </p>
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="space-y-6"
+          >
+            {/* Settings Panel */}
+            <div className="glass-sensual p-8 noise-sensual">
+              <p className="section-label mb-6">Configuration</p>
 
-            {/* Swap Model */}
-            <div className="space-y-2">
-              <Label htmlFor="swap-model" className="text-[9px] font-mono uppercase tracking-[0.5em] text-[#a08fb7]">
-                Swap Model
-              </Label>
-              <select
-                id="swap-model"
-                value={swapModel}
-                onChange={(e) => setSwapModel(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-black/40 text-white text-[9px] p-3 min-h-10 transition-colors duration-150 hover:border-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-offset-2 focus:ring-offset-black"
-              >
-                {SWAP_MODELS.map((model) => (
-                  <option key={model.value} value={model.value}>
-                    {model.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Face Restore */}
-            <div className="space-y-2">
-              <Label htmlFor="face-restore" className="text-[9px] font-mono uppercase tracking-[0.5em] text-[#a08fb7]">
-                Face Restore
-              </Label>
-              <select
-                id="face-restore"
-                value={faceRestoreModel}
-                onChange={(e) => setFaceRestoreModel(e.target.value)}
-                className="w-full rounded-lg border border-white/10 bg-black/40 text-white text-[9px] p-3 min-h-10 transition-colors duration-150 hover:border-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-offset-2 focus:ring-offset-black"
-              >
-                {FACE_RESTORE_MODELS.map((model) => (
-                  <option key={model.value} value={model.value}>
-                    {model.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Restore Strength */}
-            {faceRestoreModel !== 'none' && (
-              <div className="space-y-2">
-                <Label htmlFor="restore-strength" className="text-[9px] font-mono uppercase tracking-[0.5em] text-[#a08fb7]">
-                  Restore Strength: {restoreStrength.toFixed(1)}
-                </Label>
-                <Slider
-                  value={[restoreStrength]}
-                  onValueChange={([val]) => setRestoreStrength(val)}
-                  min={0}
-                  max={1}
-                  step={0.1}
-                  className="w-full"
-                  aria-label="Face restore strength from 0 to 1"
-                  />
+              <div className="space-y-6">
+                {/* Swap Model */}
+                <div className="space-y-3">
+                  <label className="block font-sans text-sm text-white/70">
+                    Swap Model
+                  </label>
+                  <select
+                    value={swapModel}
+                    onChange={(e) => setSwapModel(e.target.value)}
+                    className="select-sensual"
+                  >
+                    {SWAP_MODELS.map((model) => (
+                      <option key={model.value} value={model.value}>
+                        {model.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              )}
 
-              {/* Target Face Index */}
-              <div className="space-y-2">
-                <Label htmlFor="target-face-index" className="text-[9px] font-mono uppercase tracking-[0.5em] text-[#a08fb7]">
-                  Target Face Index
-                </Label>
-                <select
-                  id="target-face-index"
-                  value={targetIndex}
-                  onChange={(e) => setTargetIndex(Number(e.target.value))}
-                  className="w-full rounded-lg border border-white/10 bg-black/40 text-white text-[9px] p-3 min-h-10 transition-colors duration-150 hover:border-white/20 focus:outline-none focus:border-white/30 focus:ring-2 focus:ring-offset-2 focus:ring-offset-black"
-                >
-                  {TARGET_INDICES.map((i) => (
-                    <option key={i} value={i}>
-                      {i}
-                    </option>
-                  ))}
-                </select>
+                {/* Face Restore */}
+                <div className="space-y-3">
+                  <label className="block font-sans text-sm text-white/70">
+                    Face Restore
+                  </label>
+                  <select
+                    value={faceRestoreModel}
+                    onChange={(e) => setFaceRestoreModel(e.target.value)}
+                    className="select-sensual"
+                  >
+                    {FACE_RESTORE_MODELS.map((model) => (
+                      <option key={model.value} value={model.value}>
+                        {model.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Target Face Index */}
+                <div className="space-y-3">
+                  <label className="block font-sans text-sm text-white/70">
+                    Target Face Index: {targetIndex}
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="4"
+                    value={targetIndex}
+                    onChange={(e) => setTargetIndex(parseInt(e.target.value))}
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-white/10"
+                    style={{ accentColor: 'hsl(340, 80%, 65%)' }}
+                  />
+                  <div className="flex justify-between text-xs text-white/30">
+                    <span>0</span>
+                    <span>1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>4</span>
+                  </div>
+                </div>
+
+                {/* Restore Strength */}
+                {faceRestoreModel !== 'none' && (
+                  <div className="space-y-3">
+                    <label className="block font-sans text-sm text-white/70">
+                      Restore Strength: {Math.round(restoreStrength * 100)}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={restoreStrength}
+                      onChange={(e) => setRestoreStrength(parseFloat(e.target.value))}
+                      className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-white/10"
+                      style={{ accentColor: 'hsl(340, 80%, 65%)' }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
-            <ResultCard result={result} accentColor="#ff2d78" label="Result" />
-          </div>
+            {/* Result Panel */}
+            {result && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="glass-sensual overflow-hidden noise-sensual"
+              >
+                <div className="p-6 border-b border-white/[0.06]">
+                  <div className="flex items-center justify-between">
+                    <span className="section-label">Result</span>
+                    <a
+                      href={result}
+                      download
+                      className="flex items-center gap-2 text-sm font-medium text-[hsl(340,80%,65%)] hover:text-[hsl(340,80%,75%)] transition-colors"
+                    >
+                      <Download size={16} />
+                      Download
+                    </a>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <img
+                    src={result}
+                    alt="Result"
+                    className="w-full rounded-xl shadow-2xl"
+                  />
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       </div>
     </div>

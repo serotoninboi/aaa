@@ -1,13 +1,15 @@
 'use client'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useUser, useClerk } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
 import { User, Zap, LogOut, Sparkles, ChevronDown } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const navLinks = [
   {
-    label: 'STUDIO',
+    label: 'Studio',
     href: '/studio',
     sublinks: [
       { label: 'Image Edit', href: '/studio/image-edit' },
@@ -15,7 +17,7 @@ const navLinks = [
       { label: 'Face Swap', href: '/studio/face-swap' },
     ],
   },
-  { label: 'PRICING', href: '/pricing' },
+  { label: 'Pricing', href: '/pricing' },
 ]
 
 export function Header() {
@@ -26,14 +28,13 @@ export function Header() {
   const [openSubnav, setOpenSubnav] = useState<string | null>(null)
   const pathname = usePathname()
 
-  // Fetch user credits
   useEffect(() => {
     if (user) {
       setLoadingCredits(true)
       fetch('/api/user/me')
-        .then(res => res.json())
-        .then(data => setCredits(data.user?.credits ?? 0))
-        .catch(err => console.error('Failed to fetch credits:', err))
+        .then((res) => res.json())
+        .then((data) => setCredits(data.user?.credits ?? 0))
+        .catch((err) => console.error('Failed to fetch credits:', err))
         .finally(() => setLoadingCredits(false))
     }
   }, [user])
@@ -43,44 +44,43 @@ export function Header() {
   }
 
   const isAuthenticated = isLoaded && !!user
-
   const isStudioActive = pathname.startsWith('/studio')
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b-2 border-border bg-background/95 backdrop-blur">
-      <div className="relative mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3">
+    <header className="sticky top-0 z-50 w-full border-b border-white/[0.06] bg-black/20 backdrop-blur-2xl">
+      <div className="relative mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2" aria-label="PixelForge Home">
-          <div className="flex h-10 w-10 items-center justify-center rounded border-2 border-primary bg-primary/20 glow-cyan">
-            <Sparkles size={18} className="text-primary" />
+        <Link href="/" className="flex items-center gap-3" aria-label="Claudine AI Home">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[hsl(340,80%,65%)]/30 bg-[hsl(340,80%,65%)]/10 transition-all duration-500 hover:glow-rose">
+            <Sparkles size={18} className="text-[hsl(340,80%,65%)]" />
           </div>
           <div>
-            <p className="font-pixel text-[8px] text-primary neon-cyan">PIXELFORGE</p>
-            <p className="font-pixel text-[10px] text-foreground">AI</p>
+            <p className="font-display text-lg font-semibold text-white">Claudine</p>
+            <p className="font-sans text-[10px] uppercase tracking-[0.2em] text-white/40">Private Studio</p>
           </div>
         </Link>
 
         {/* Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map(link => (
+        <nav className="hidden items-center gap-8 md:flex">
+          {navLinks.map((link) => (
             <div key={link.href} className="relative group">
               <button
                 onClick={() =>
                   setOpenSubnav(openSubnav === link.label ? null : link.label)
                 }
-                className={`font-mono text-xs uppercase tracking-wider transition-colors flex items-center gap-1 ${
-                  isStudioActive && link.label === 'STUDIO'
-                    ? 'text-primary neon-cyan'
+                className={`flex items-center gap-1 font-sans text-sm font-medium tracking-wide transition-colors ${
+                  isStudioActive && link.label === 'Studio'
+                    ? 'text-[hsl(340,80%,65%)]'
                     : pathname === link.href
-                    ? 'text-primary neon-cyan'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'text-[hsl(340,80%,65%)]'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
                 {link.label}
                 {link.sublinks && (
                   <ChevronDown
                     size={14}
-                    className={`transition-transform ${
+                    className={`transition-transform duration-300 ${
                       openSubnav === link.label ? 'rotate-180' : ''
                     }`}
                   />
@@ -88,79 +88,84 @@ export function Header() {
               </button>
 
               {/* Sub-navigation dropdown */}
-              {link.sublinks && (
-                <div
-                  className={`absolute left-0 mt-2 w-40 rounded border-2 border-border bg-background/95 shadow-lg backdrop-blur transition-opacity duration-200 ${
-                    openSubnav === link.label
-                      ? 'opacity-100 visible'
-                      : 'opacity-0 invisible'
-                  }`}
-                >
-                  {link.sublinks.map(sublink => (
-                    <Link
-                      key={sublink.href}
-                      href={sublink.href}
-                      className={`block px-4 py-2 text-xs font-mono uppercase tracking-wider border-b-2 border-border/50 last:border-b-0 transition-colors ${
-                        pathname === sublink.href
-                          ? 'text-primary neon-cyan bg-primary/10'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-primary/5'
-                      }`}
-                      onClick={() => setOpenSubnav(null)}
-                    >
-                      {sublink.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
+              <AnimatePresence>
+                {link.sublinks && openSubnav === link.label && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute left-0 top-full mt-3 w-48 overflow-hidden glass-sensual"
+                  >
+                    {link.sublinks.map((sublink) => (
+                      <Link
+                        key={sublink.href}
+                        href={sublink.href}
+                        className={`block px-5 py-3.5 font-sans text-sm transition-colors ${
+                          pathname === sublink.href
+                            ? 'bg-[hsl(340,80%,65%)]/10 text-[hsl(340,80%,65%)]'
+                            : 'text-white/60 hover:bg-white/[0.03] hover:text-white'
+                        }`}
+                        onClick={() => setOpenSubnav(null)}
+                      >
+                        {sublink.label}
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ))}
         </nav>
 
         {/* Right Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {isAuthenticated && user ? (
             <>
               {/* Credits Display */}
-              <div className="flex items-center gap-2 rounded border-2 border-primary bg-primary/10 px-3 py-1 text-xs font-mono uppercase tracking-wider text-primary glow-cyan">
-                <Zap size={12} />
-                <span>{loadingCredits ? '...' : credits} CREDITS</span>
+              <div className="flex items-center gap-2 rounded-xl border border-[hsl(40,60%,75%)]/20 bg-[hsl(40,60%,75%)]/5 px-4 py-2">
+                <Zap size={14} className="text-[hsl(40,60%,75%)]" />
+                <span className="font-sans text-sm font-medium text-[hsl(40,60%,75%)]">
+                  {loadingCredits ? '...' : credits}
+                </span>
               </div>
 
               {/* Account Button */}
               <Link
                 href="/account"
-                className=" p2 text-xs font-mono uppercase tracking-wider text-muted-foreground inline-flex items-center gap-3"
+                className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-4 py-2 transition-all duration-300 hover:border-white/[0.1] hover:bg-white/[0.06]"
               >
-  <div className="text-right text-[9px] uppercase tracking-wider text-muted-foreground">
-                  <p>LOGGED IN</p>
-                  <p className="text-foreground font-bold">{user.firstName || user.emailAddresses[0]?.emailAddress}</p>
+                <div className="text-right">
+                  <p className="font-sans text-xs text-white/40">
+                    {user.firstName || 'User'}
+                  </p>
                 </div>
-                <div className="flex  px-3 py-1 items-center justify-center rounded border-2 border-primary bg-primary/20 transition-all hover:border-primary hover:text-primary hover:glow-cyan">
-                  <User size={14} className="text-primary" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.06]">
+                  <User size={16} className="text-white/60" />
                 </div>
               </Link>
 
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="rounded border-2 border-border px-3 py-1 text-xs font-mono uppercase tracking-wider text-muted-foreground transition-all hover:border-primary hover:text-primary hover:glow-cyan"
+                className="rounded-xl border border-white/[0.06] p-2.5 text-white/40 transition-all duration-300 hover:border-red-500/30 hover:text-red-400"
               >
-                <LogOut size={14} />
+                <LogOut size={18} />
               </button>
             </>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <Link
                 href="/login"
-                className="text-xs font-mono uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                className="font-sans text-sm font-medium text-white/60 transition-colors hover:text-white"
               >
-                LOGIN
+                Login
               </Link>
               <Link
-                href="/sign-up"
-                className="rounded border-2 border-primary bg-primary/20 px-4 py-1.5 text-xs font-mono uppercase tracking-wider text-primary transition-all hover:glow-cyan glow-cyan"
+                href="/register"
+                className="rounded-xl border border-[hsl(340,80%,65%)]/30 bg-[hsl(340,80%,65%)]/10 px-5 py-2.5 font-sans text-sm font-medium text-[hsl(340,80%,65%)] transition-all duration-300 hover:glow-rose"
               >
-                SIGN UP
+                Sign Up
               </Link>
             </div>
           )}

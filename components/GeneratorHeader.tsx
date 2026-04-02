@@ -2,39 +2,47 @@
 
 import { Sparkles } from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface GeneratorHeaderProps {
   title: string
   description: string
   labLabel?: string
-  labColor?: string
   icon?: LucideIcon
-  iconColor?: string
 }
 
 export function GeneratorHeader({
   title,
   description,
-  labLabel = 'Image Lab',
-  labColor = '#c3b5f0',
+  labLabel = 'Private Studio',
   icon: Icon = Sparkles,
-  iconColor = 'text-primary',
 }: GeneratorHeaderProps) {
   return (
-    <header className="rounded-[28px] border border-white/10 bg-black/60 p-6 text-center shadow-[0_30px_80px_rgba(0,0,0,0.8)]">
-      <div className="flex items-center justify-center gap-2 mb-2">
-        <Icon size={24} className={iconColor} />
-        <p
-          className="text-[10px] font-mono uppercase tracking-[0.6em]"
-          style={{ color: labColor }}
-        >
-          {labLabel}
+    <motion.header
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="glass-sensual relative overflow-hidden p-10 text-center noise-sensual"
+    >
+      {/* Decorative gradient orbs */}
+      <div className="absolute -left-20 -top-20 h-40 w-40 rounded-full bg-[hsl(340,80%,65%)]/10 blur-3xl" />
+      <div className="absolute -bottom-20 -right-20 h-40 w-40 rounded-full bg-[hsl(270,60%,55%)]/10 blur-3xl" />
+      
+      <div className="relative z-10">
+        <div className="mb-5 flex items-center justify-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[hsl(340,80%,65%)]/20 bg-[hsl(340,80%,65%)]/10">
+            <Icon size={22} className="text-[hsl(340,80%,65%)]" />
+          </div>
+          <span className="section-label">{labLabel}</span>
+        </div>
+        
+        <h1 className="mb-3 font-display text-4xl font-semibold text-white md:text-5xl">
+          {title}
+        </h1>
+        <p className="mx-auto max-w-lg font-sans text-base leading-relaxed text-white/50">
+          {description}
         </p>
       </div>
-      <h1 className="text-4xl font-display font-bold text-white">{title}</h1>
-      <p className="text-[12px] uppercase tracking-[0.3em] text-[#8f8397]">
-        {description}
-      </p>
-    </header>
+    </motion.header>
   )
 }
