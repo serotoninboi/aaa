@@ -1,0 +1,16 @@
+{
+  "skills": [
+    {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "skills": [
+        "ui-ux-pro-max"
+      ]
+    },
+    {
+      "source": "vercel-labs/next-skills",
+      "skills": [
+        "next-best-practices"
+      ]
+    }
+  ]
+}

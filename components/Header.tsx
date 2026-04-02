@@ -12,7 +12,6 @@ const navLinks = [
     sublinks: [
       { label: 'Image Edit', href: '/studio/image-edit' },
       { label: 'Pose Changer', href: '/studio/pose-edit' },
-            { label: 'Pose Changer', href: '/studio/pose' },
       { label: 'Face Swap', href: '/studio/face-swap' },
     ],
   },
@@ -127,23 +126,18 @@ export function Header() {
                 <span>{loadingCredits ? '...' : credits} CREDITS</span>
               </div>
 
-              {/* User Info */}
-              <Link href="/studio/account" className="hidden sm:flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <div className="text-right text-[9px] uppercase tracking-wider text-muted-foreground">
+              {/* Account Button */}
+              <Link
+                href="/account"
+                className=" p2 text-xs font-mono uppercase tracking-wider text-muted-foreground inline-flex items-center gap-3"
+              >
+  <div className="text-right text-[9px] uppercase tracking-wider text-muted-foreground">
                   <p>LOGGED IN</p>
                   <p className="text-foreground font-bold">{user.firstName || user.emailAddresses[0]?.emailAddress}</p>
                 </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded border-2 border-primary bg-primary/20">
-                  <User size={16} className="text-primary" />
+                <div className="flex  px-3 py-1 items-center justify-center rounded border-2 border-primary bg-primary/20 transition-all hover:border-primary hover:text-primary hover:glow-cyan">
+                  <User size={14} className="text-primary" />
                 </div>
-              </Link>
-
-              {/* Account Button */}
-              <Link
-                href="/studio/account"
-                className="rounded border-2 border-border px-3 py-1 text-xs font-mono uppercase tracking-wider text-muted-foreground transition-all hover:border-primary hover:text-primary hover:glow-cyan inline-flex items-center gap-1"
-              >
-                <User size={14} />
               </Link>
 
               {/* Logout Button */}
@@ -157,7 +151,7 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-3">
               <Link
-                href="/sign-in"
+                href="/login"
                 className="text-xs font-mono uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
               >
                 LOGIN
