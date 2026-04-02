@@ -1,13 +1,11 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Get authenticated user from Clerk
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -27,31 +25,21 @@ export async function POST(request: NextRequest) {
     const pricePerCredit = 0.1
     const amount = Number((creditsAmount * pricePerCredit).toFixed(2))
 
-    const { data: billing, error: billingError } = await supabase
-      .from('billing')
-      .insert({
-        user_id: user.id,
+    // Billing recorded locally (no database storage)
+    console.log('[billing] Purchase request created', { userId, creditsAmount, provider })
+
+    return NextResponse.json({
+      success: true,
+      billing: {
+        id: 'temp-id',
+        user_id: userId,
         amount,
         currency: 'EUR',
         credits_added: creditsAmount,
         status: 'pending',
         provider,
         provider_ref: providerRef ?? null,
-      })
-      .select()
-      .single()
-
-    if (billingError) {
-      console.error('Billing insert error:', billingError)
-      return NextResponse.json(
-        { error: 'Failed to create billing record' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      success: true,
-      billing,
+      },
       amount,
       creditsAmount,
     })

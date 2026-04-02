@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import { AuthProvider } from '@/lib/auth-context'
 import { Header } from '@/components/Header'
+import { ClerkProvider } from '@clerk/nextjs'
 
 export const metadata: Metadata = {
   title: {
@@ -29,10 +29,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased">
-        <AuthProvider>
+        <ClerkProvider>
           <Header />
           <main className="w-full flex-1">{children}</main>
-        </AuthProvider>
+        </ClerkProvider>
       </body>
     </html>
   )

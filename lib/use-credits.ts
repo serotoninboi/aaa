@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { useAuth } from '@/lib/auth-context'
+import { useUser } from '@clerk/nextjs'
 
 interface CreditPurchaseOptions {
   creditsAmount: number
@@ -18,14 +18,15 @@ interface GenerationOptions {
 }
 
 export function useCredits() {
-  const { user, supabaseUser } = useAuth()
+  const { user } = useUser()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [credits, setCredits] = useState(0)
 
   // Purchase credits
   const purchaseCredits = useCallback(
     async (options: CreditPurchaseOptions) => {
-      if (!supabaseUser) throw new Error('Not authenticated')
+      if (!user) throw new Error('Not authenticated')
 
       setIsLoading(true)
       setError(null)
@@ -52,13 +53,13 @@ export function useCredits() {
         setIsLoading(false)
       }
     },
-    [supabaseUser]
+    [user]
   )
 
   // Complete payment
   const completePayment = useCallback(
     async (billingId: string, status: 'completed' | 'failed') => {
-      if (!supabaseUser) throw new Error('Not authenticated')
+      if (!user) throw new Error('Not authenticated')
 
       setIsLoading(true)
       setError(null)
@@ -85,13 +86,13 @@ export function useCredits() {
         setIsLoading(false)
       }
     },
-    [supabaseUser]
+    [user]
   )
 
   // Record generation
   const recordGeneration = useCallback(
     async (options: GenerationOptions) => {
-      if (!supabaseUser) throw new Error('Not authenticated')
+      if (!user) throw new Error('Not authenticated')
 
       setIsLoading(true)
       setError(null)
@@ -118,11 +119,11 @@ export function useCredits() {
         setIsLoading(false)
       }
     },
-    [supabaseUser]
+    [user]
   )
 
   return {
-    credits: user?.credits ?? 0,
+    credits,
     isLoading,
     error,
     purchaseCredits,

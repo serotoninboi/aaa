@@ -1,33 +1,21 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(_request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Get authenticated user from Clerk
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError) {
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 500 }
-      )
-    }
-
+    // Return basic profile from Clerk (no database storage)
     return NextResponse.json({
       success: true,
-      profile,
+      profile: {
+        id: userId,
+        credits: 0,
+      },
     })
   } catch (error) {
     console.error('Profile fetch error:', error)
@@ -40,34 +28,24 @@ export async function GET(_request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
-    
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
+    // Get authenticated user from Clerk
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { name, email } = await request.json()
 
-    // Update user profile
-    const { data: updated, error: updateError } = await supabase
-      .from('users')
-      .update({ name, email })
-      .eq('id', user.id)
-      .select()
-      .single()
-
-    if (updateError) {
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      )
-    }
-
+    // Profile updates would need to be handled by Clerk
+    // For now, just acknowledge the request
     return NextResponse.json({
       success: true,
-      profile: updated,
+      profile: {
+        id: userId,
+        name,
+        email,
+        credits: 0,
+      },
     })
   } catch (error) {
     console.error('Profile update error:', error)

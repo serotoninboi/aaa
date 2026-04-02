@@ -1,6 +1,6 @@
 'use client'
 import { useState, useCallback } from 'react'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@clerk/nextjs'
 import { DropZone } from '@/components/DropZone'
 import { ResultPanel } from '@/components/ResultPanel'
 import { Input } from '@/components/ui/input'
@@ -16,7 +16,7 @@ const POSE_PRESETS = [
 ]
 
 export default function PoseEditPage() {
-  const { token } = useAuth()
+  const { getToken } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [selectedPreset, setSelectedPreset] = useState('')
@@ -51,6 +51,7 @@ export default function PoseEditPage() {
     setLoading(true)
     setError('')
     try {
+      const token = await getToken()
       const fd = new FormData()
       fd.append('image', file)
       fd.append('pose', activePose)
@@ -75,8 +76,8 @@ export default function PoseEditPage() {
       <div className="relative z-10 mx-auto max-w-6xl space-y-8 px-4">
         <header className="rounded-[28px] border border-white/10 bg-black/60 p-6 text-center shadow-[0_30px_80px_rgba(0,0,0,0.8)]">
           <p className="text-[10px] font-mono uppercase tracking-[0.6em] text-[#f0dffb]">Pose Lab</p>
-          <h1 className="text-4xl font-display font-bold text-white">Pose Editor</h1>
-          <p className="text-[12px] uppercase tracking-[0.3em] text-[#8f8397]">Retarget any character with a seductive whisper of motion</p>
+          <h1 className="text-4xl font-display font-bold text-white">Pose Changer</h1>
+          <p className="text-[12px] uppercase tracking-[0.3em] text-[#8f8397]">Retarget any character with dynamic motion</p>
         </header>
 
         <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
@@ -131,12 +132,12 @@ export default function PoseEditPage() {
               disabled={loading || !file || !activePose}
               className="neon-button w-full rounded-2xl py-4 text-[11px] font-bold uppercase tracking-[0.4em]"
             >
-              {loading ? 'Applying...' : 'Apply pose'}
+              {loading ? 'Applying...' : 'Apply Pose'}
             </button>
           </div>
 
           <div className="rounded-[32px] border border-white/10 bg-[linear-gradient(140deg,_rgba(255,45,120,0.05),_rgba(5,0,10,0.85))] p-6 shadow-[0_30px_80px_rgba(0,0,0,0.9)]">
-            <ResultPanel result={result} loading={loading} label="Pose output" />
+            <ResultPanel result={result} loading={loading} label="Result" />
           </div>
         </div>
       </div>

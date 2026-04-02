@@ -8,3 +8,5 @@ node_modules
 .github
 certificates
 .env*
+# clerk configuration (can include secrets)
+/.clerk/

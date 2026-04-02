@@ -1,104 +1,81 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
-import { getHFToken, fileToDataUrl, bufferToDataUrl, HFConfigError } from "@/lib/hf"
-
-import { InferenceClient } from "@huggingface/inference"
+import { auth } from "@clerk/nextjs/server"
+import { Client } from "@gradio/client"
 
 export async function POST(req: NextRequest) {
-  const supabase = await createServerSupabaseClient()
-  
-  // Get authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
+  // Get authenticated user from Clerk
+  const { userId } = await auth()
+  if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
   }
 
-  const { data: userProfile, error: profileError } = await supabase
-    .from("users")
-    .select("credits")
-    .eq("id", user.id)
-    .single()
-
-  if (profileError) {
-    console.error("User fetch error:", profileError)
-    return NextResponse.json(
-      { message: "Unauthorized" },
-      { status: 401 }
-    )
-  }
-
-  const credits = userProfile?.credits ?? 0
-  if (credits < 1) {
-    return NextResponse.json(
-      { message: "Insufficient credits. Please top up." },
-      { status: 402 }
-    )
-  }
-
-  const formData = await req.formData()
-  const image = formData.get("image") as File | null
-  const prompt = formData.get("prompt") as string | null
-
-  if (!image || !prompt?.trim()) {
-    return NextResponse.json(
-      { message: "Image and prompt are required" },
-      { status: 400 }
-    )
-  }
-
-  let hfToken: string
   try {
-    hfToken = getHFToken()
-  } catch (err) {
-    if (err instanceof HFConfigError) {
-      return NextResponse.json({ message: err.message }, { status: 503 })
-    }
-    throw err
-  }
+    const formData = await req.formData()
+    const image = formData.get("image") as File | null
+    const prompt = (formData.get("prompt") as string) ?? ""
+    const seed = parseInt((formData.get("seed") as string) ?? "0")
+    const randomizeSeed = formData.get("randomizeSeed") === "true"
+    const guidanceScale = parseFloat((formData.get("guidanceScale") as string) ?? "1")
+    const numSteps = parseInt((formData.get("numSteps") as string) ?? "4")
+    const height = parseInt((formData.get("height") as string) ?? "256")
+    const width = parseInt((formData.get("width") as string) ?? "256")
+    const rewritePrompt = formData.get("rewritePrompt") === "true"
 
-  const hf = new InferenceClient(hfToken)
-
-  try {
-    const imageDataUrl = await fileToDataUrl(image)
-
-    const blob = await hf.imageToImage({
-      model: "Qwen/Qwen-Image-Edit-2511",
-      inputs: image,
-      parameters: {
-        prompt: prompt.trim(),
-        guidance_scale: 7,
-      },
-    })
-
-    const resultBuf = await blob.arrayBuffer()
-    const resultDataUrl = bufferToDataUrl(resultBuf, "image/png")
-
-    const { error: generationError } = await supabase
-      .from("generations")
-      .insert({
-        user_id: user.id,
-        prompt: prompt.trim(),
-        input_url: imageDataUrl,
-        output_url: resultDataUrl,
-        model_used: "Qwen/Qwen-Image-Edit-2511",
-        credits_used: 1,
-      })
-      .select()
-      .single()
-
-    if (generationError) {
-      console.error("Generation insert error:", generationError)
+    if (!image || !prompt.trim()) {
       return NextResponse.json(
-        { message: "Failed to record generation" },
-        { status: 500 }
+        { message: "Image and prompt are required" },
+        { status: 400 }
       )
     }
 
-    return NextResponse.json({ result: resultDataUrl })
+    console.log("[image-edit] Processing Qwen image edit request", {
+      image: image.name,
+      prompt,
+      seed,
+      guidanceScale,
+      numSteps,
+      height,
+      width,
+    })
+
+    const imageBlob = new Blob([await image.arrayBuffer()], {
+      type: image.type || "image/png",
+    })
+
+    // Connect to Qwen image edit space
+    const client = await Client.connect("serotoninboi/qwen-image-edit")
+    const result = await client.predict("/infer", {
+      images: [
+        {
+          image: imageBlob,
+          caption: null,
+        },
+      ],
+      prompt: prompt.trim(),
+      seed: randomizeSeed ? Math.floor(Math.random() * 1000000) : seed,
+      true_guidance_scale: guidanceScale,
+      num_inference_steps: numSteps,
+      height,
+      width,
+      rewrite_prompt: rewritePrompt,
+    })
+
+    const outputGallery = result.data[0]
+    const usedSeed = result.data[1]
+
+    if (!outputGallery || !outputGallery[0]) {
+      throw new Error("No image generated from Qwen API")
+    }
+
+    const generatedImage = outputGallery[0].image.url
+    console.log("[image-edit] Image edit successful:", { generatedImage, seed: usedSeed })
+
+    return NextResponse.json({ result: generatedImage, seed: usedSeed })
   } catch (err) {
     console.error("[image-edit] Unexpected error:", err)
+    const errorMessage = err instanceof Error ? err.message : "Unknown error"
     return NextResponse.json(
-      { message: "Failed to process image" },
+      { message: `Failed to edit image: ${errorMessage}` },
       { status: 500 }
     )
   }

@@ -1,134 +1,45 @@
 "use client";
-import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { createClient } from "@/lib/supabase";
-import type { User } from "@supabase/supabase-js";
+import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { useUser, useSignOut } from "@clerk/nextjs";
 import type { PublicUser } from "@/types";
 
 interface AuthCtx {
   user: PublicUser | null;
-  supabaseUser: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<PublicUser | null>(null);
-  const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const supabase = createClient();
+  const { user: clerkUser, isLoaded } = useUser();
+  const { signOut } = useSignOut();
+  const [token, setToken] = useState<string | null>(null);
 
-  // Initialize auth state from Supabase session
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setSupabaseUser(session.user);
-          // Fetch user profile from database
-          const { data: profile } = await supabase
-            .from('auth.users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profile) {
-            setUser({
-              id: profile.id,
-              email: profile.email,
-              name: profile.name,
-              credits: profile.credits,
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Auth init error:', error);
-      } finally {
-        setIsLoading(false);
+  const publicUser: PublicUser | null = clerkUser
+    ? {
+        id: clerkUser.id,
+        email: clerkUser.primaryEmailAddress?.emailAddress || "",
+        name: clerkUser.firstName || clerkUser.email || "",
+        credits: 0, // Credits can be fetched from session storage or API as needed
       }
-    };
-
-    initAuth();
-
-    //TODO: move this server side and use supabase-server instead
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setSupabaseUser(session.user);
-          const { data: profile } = await supabase
-            .from('auth.users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          if (profile) {
-            setUser({
-              id: profile.id,
-              email: profile.email,
-              name: profile.name,
-              credits: profile.credits,
-            });
-          }
-        } else {
-          setSupabaseUser(null);
-          setUser(null);
-        }
-      }
-    );
-
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [supabase]);
-
-  const login = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw new Error(error.message);
-    if (data.user) {
-      setSupabaseUser(data.user);
-    }
-  }, [supabase]);
-
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name },
-      },
-    });
-    if (error) throw new Error(error.message);
-    if (data.user) {
-      setSupabaseUser(data.user);
-    }
-  }, [supabase]);
+    : null;
 
   const logout = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw new Error(error.message);
-    setUser(null);
-    setSupabaseUser(null);
-  }, [supabase]);
+    await signOut({ redirectUrl: "/" });
+    setToken(null);
+  }, [signOut]);
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        supabaseUser,
-        isAuthenticated: !!supabaseUser, 
-        isLoading,
-        login, 
-        register, 
-        logout 
+    <AuthContext.Provider
+      value={{
+        user: publicUser,
+        token,
+        isAuthenticated: !!clerkUser,
+        isLoading: !isLoaded,
+        logout,
       }}
     >
       {children}

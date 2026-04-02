@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { useAuth } from "@/components/AuthContext";
+import { useAuth } from "@clerk/nextjs";
 import { DropZone } from "@/components/DropZone";
 import { ResultPanel } from "@/components/ResultPanel";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ const POSE_PRESETS = [
 ];
 
 export default function PoseEditorPage() {
-  const { token } = useAuth();
+  const { getToken } = useAuth();
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("");
@@ -50,6 +50,7 @@ export default function PoseEditorPage() {
     fd.append("image", image);
     fd.append("pose", activePose);
     try {
+      const token = await getToken();
       const res = await fetch("/api/pose-edit", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },

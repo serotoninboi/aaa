@@ -1,7 +1,7 @@
 'use client'
 import { useState, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useAuth } from '@/lib/auth-context'
+import { useAuth } from '@clerk/nextjs'
 import { DropZone } from '@/components/DropZone'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert } from '@/components/ui/alert'
@@ -20,7 +20,7 @@ const QUICK_PROMPTS = [
 ]
 
 export default function StudioPage() {
-  const { token } = useAuth()
+  const { getToken } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [prompt, setPrompt] = useState('')
@@ -54,6 +54,7 @@ export default function StudioPage() {
     setLoading(true)
     setError('')
     try {
+      const token = await getToken()
       const fd = new FormData()
       fd.append('image', file)
       fd.append('prompt', prompt)

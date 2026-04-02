@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { auth } from '@clerk/nextjs/server'
 import {
   getHFToken,
   fileToDataUrl,
@@ -10,32 +10,13 @@ import {
 import { InferenceClient } from '@huggingface/inference'
 
 export async function POST(req: NextRequest) {
-  const supabase = await createServerSupabaseClient()
-  
-  // Get authenticated user
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
+  // Get authenticated user from Clerk
+  const { userId } = await auth()
+  if (!userId) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: userProfile, error: profileError } = await supabase
-    .from("users")
-    .select("credits")
-    .eq("id", user.id)
-    .single()
 
-  if (profileError) {
-    console.error("User fetch error:", profileError)
-    return NextResponse.json(
-      { message: "Unauthorized" },
-      { status: 401 }
-    )
-  }
-
-  const credits = userProfile?.credits ?? 0
-  if (credits < 1) {
-    return NextResponse.json({ message: 'Insufficient credits. Please top up.' }, { status: 402 })
-  }
 
   const formData = await req.formData()
   const image = formData.get('image') as File | null
@@ -75,26 +56,8 @@ export async function POST(req: NextRequest) {
     const resultBuf = await blob.arrayBuffer()
     const resultDataUrl = bufferToDataUrl(resultBuf, 'image/png')
 
-    const { error: generationError } = await supabase
-      .from('generations')
-      .insert({
-        user_id: user.id,
-        prompt: prompt.trim(),
-        input_url: imageDataUrl,
-        output_url: resultDataUrl,
-        model_used: 'linoyts/Qwen-Image-Edit-2511-AnyPose',
-        credits_used: 1,
-      })
-      .select()
-      .single()
-
-    if (generationError) {
-      console.error('Generation insert error:', generationError)
-      return NextResponse.json(
-        { message: 'Failed to record generation' },
-        { status: 500 }
-      )
-    }
+    // Generation logged locally (no database storage)
+    console.log('[pose-edit] Generation successful', { userId, prompt: prompt.trim() })
 
     return NextResponse.json({ result: resultDataUrl })
   } catch (err) {

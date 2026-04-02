@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
-import { useAuth } from '@/lib/auth-context'
+import { useUser, useClerk, useAuth } from '@clerk/nextjs'
+import { useEffect, useState } from 'react'
 import { Sparkles, CreditCard, ShieldCheck, Zap } from 'lucide-react'
 
 const ACTIVITY = [
@@ -10,7 +11,36 @@ const ACTIVITY = [
 ]
 
 export default function AccountPage() {
-  const { user, logout, token } = useAuth()
+  const { user, isLoaded } = useUser()
+  const { signOut } = useClerk()
+  const { getToken } = useAuth()
+  const [token, setToken] = useState<string | null>(null)
+  const [credits, setCredits] = useState<number>(0)
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const t = await getToken()
+      setToken(t)
+    }
+    fetchToken()
+  }, [getToken])
+
+  useEffect(() => {
+    if (user) {
+      fetch('/api/user/me')
+        .then(res => res.json())
+        .then(data => setCredits(data.user?.credits ?? 0))
+        .catch(err => console.error('Failed to fetch credits:', err))
+    }
+  }, [user])
+
+  const handleLogout = () => {
+    signOut()
+  }
+
+  if (!isLoaded || !user) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div className="relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,45,120,0.12),_transparent_65%),_radial-gradient(circle_at_0%_80%,_rgba(165,91,255,0.2),_transparent_55%)] py-16">
@@ -38,15 +68,20 @@ export default function AccountPage() {
             <p className="section-lead">Profile</p>
             <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,_rgba(255,45,120,0.12),_rgba(10,0,10,0.95))] p-5">
               <p className="text-[12px] uppercase tracking-[0.4em] text-[#b7accd]">Name</p>
-              <p className="text-2xl font-oxanium text-white">{user?.name || 'Luminous Creator'}</p>
-              <p className="mt-2 text-[11px] uppercase tracking-[0.4em] text-[#a8a0c4]">{user?.email || 'you@example.com'}</p>
+              <p className="text-2xl font-oxanium text-white">{user?.firstName || 'Luminous Creator'}</p>
+              <p className="mt-2 text-[11px] uppercase tracking-[0.4em] text-[#a8a0c4]">{user?.primaryEmailAddress?.emailAddress || 'you@example.com'}</p>
+            </div>
+            <p className="section-lead">Credits</p>
+            <div className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,_rgba(255,45,120,0.12),_rgba(10,0,10,0.95))] p-5">
+              <p className="text-[12px] uppercase tracking-[0.4em] text-[#b7accd]">Balance</p>
+              <p className="text-2xl font-oxanium text-white">{credits} CREDITS</p>
             </div>
             <p className="section-lead">Stream token</p>
             <div className="rounded-[28px] border border-dashed border-white/20 bg-black/60 px-5 py-4 text-[10px] uppercase tracking-[0.4em] text-[#8c879c]">
               {token ? `${token.slice(0, 20)}…` : 'No session yet'}
             </div>
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="neon-button w-full rounded-2xl px-5 py-3 text-[11px]"
             >
               Sign out securely

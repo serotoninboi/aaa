@@ -18,11 +18,11 @@
     --popover-foreground: 180 100% 95%;
     
     /* Primary: Neon cyan */
-    --primary: 180 100% 50%;
+    --primary: 320 100% 60%;
     --primary-foreground: 222 47% 6%;
     
     /* Secondary: Neon magenta/pink */
-    --secondary: 320 100% 60%;
+    --secondary: 180 100% 50%;
     --secondary-foreground: 222 47% 6%;
     
     --muted: 222 30% 15%;
@@ -98,14 +98,14 @@
   }
   
   /* Neon glow effects */
-  .neon-cyan {
+   .neon-magenta {
     text-shadow: 
       0 0 5px hsl(180 100% 50%),
       0 0 10px hsl(180 100% 50%),
       0 0 20px hsl(180 100% 50%);
   }
   
-  .neon-magenta {
+  .neon-cyan {
     text-shadow: 
       0 0 5px hsl(320 100% 60%),
       0 0 10px hsl(320 100% 60%),
@@ -127,14 +127,14 @@
   }
   
   /* Box glow effects */
-  .glow-cyan {
+  .glow-magenta {
     box-shadow: 
       0 0 5px hsl(180 100% 50%),
       0 0 10px hsl(180 100% 50% / 0.5),
       inset 0 0 5px hsl(180 100% 50% / 0.3);
   }
   
-  .glow-magenta {
+  .glow-cyan {
     box-shadow: 
       0 0 5px hsl(320 100% 60%),
       0 0 10px hsl(320 100% 60% / 0.5),
@@ -316,3 +316,5 @@
     animation: crit-flash 0.3s ease-in-out 2, float-up 1s ease-out forwards;
   }
 }
+
+

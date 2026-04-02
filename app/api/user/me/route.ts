@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { auth } from '@clerk/nextjs/server'
 
 export async function GET(_req: NextRequest) {
   try {
-    const supabase = await createServerSupabaseClient()
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
+    // Get authenticated user from Clerk
+    const { userId } = await auth()
+    if (!userId) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch user profile from database
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, name, email, credits, createdAt')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
-    }
-
-    return NextResponse.json({ user })
+    // Return basic user info
+    return NextResponse.json({ 
+      user: {
+        id: userId,
+        credits: 0,
+      }
+    })
   } catch (error) {
     console.error('User me error:', error)
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
