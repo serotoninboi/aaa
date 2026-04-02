@@ -1,82 +1,139 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
-import { Client } from "@gradio/client"
+import { InferenceClient } from "@huggingface/inference"
 
+// ─── Config ────────────────────────────────────────────────────────────────
+// timbrooks/instruct-pix2pix — instruction-based img2img, no safety filter
+// Swap via env for other uncensored models, e.g.:
+//   "stabilityai/stable-diffusion-xl-refiner-1.0"  (strength-based img2img)
+//   "lllyasviel/sd-controlnet-canny"                (structure-preserving)
+const MODEL_ID =
+  process.env.HF_IMG2IMG_MODEL ?? "lightx2v/Qwen-Image-Edit-2511-Lightning"
+
+const HF_TOKEN = process.env.HF_TOKEN!
+
+// ─── POST /api/hf-img2img ──────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  // Get authenticated user from Clerk
   const { userId } = await auth()
   if (!userId) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
   }
 
+  if (!HF_TOKEN) {
+    return NextResponse.json(
+      { message: "HF_TOKEN environment variable is not set" },
+      { status: 500 }
+    )
+  }
+
   try {
     const formData = await req.formData()
-    const image = formData.get("image") as File | null
-    const prompt = (formData.get("prompt") as string) ?? ""
-    const seed = parseInt((formData.get("seed") as string) ?? "0")
-    const randomizeSeed = formData.get("randomizeSeed") === "true"
-    const guidanceScale = parseFloat((formData.get("guidanceScale") as string) ?? "1")
-    const numSteps = parseInt((formData.get("numSteps") as string) ?? "4")
-    const height = parseInt((formData.get("height") as string) ?? "256")
-    const width = parseInt((formData.get("width") as string) ?? "256")
-    const rewritePrompt = formData.get("rewritePrompt") === "true"
 
-    if (!image || !prompt.trim()) {
+    // ── Required ────────────────────────────────────────────────────────────
+    const image = formData.get("image") as File | null
+    const prompt = (formData.get("prompt") as string)?.trim()
+
+    if (!image) {
       return NextResponse.json(
-        { message: "Image and prompt are required" },
+        { message: "image is required" },
+        { status: 400 }
+      )
+    }
+    if (!prompt) {
+      return NextResponse.json(
+        { message: "prompt is required" },
         { status: 400 }
       )
     }
 
-    console.log("[image-edit] Processing Qwen image edit request", {
-      image: image.name,
+    // ── Optional params ─────────────────────────────────────────────────────
+    // `strength` (0–1): how much to deviate from the source image.
+    //   0.0 = identical to input, 1.0 = ignore input completely.
+    //   instruct-pix2pix typically works best at 0.7–0.9.
+    const strength = parseFloat(
+      (formData.get("strength") as string) ?? "0.8"
+    )
+    const guidanceScale = parseFloat(
+      (formData.get("guidanceScale") as string) ?? "7.5"
+    )
+    // instruct-pix2pix uses a second guidance scale for the image conditioning
+    const imageGuidanceScale = parseFloat(
+      (formData.get("imageGuidanceScale") as string) ?? "1.5"
+    )
+    const numInferenceSteps = parseInt(
+      (formData.get("numSteps") as string) ?? "50"
+    )
+    const negativePrompt =
+      (formData.get("negativePrompt") as string)?.trim() || undefined
+    const seed = formData.get("seed")
+      ? parseInt(formData.get("seed") as string)
+      : Math.floor(Math.random() * 2 ** 32)
+
+    console.log("[hf-img2img] Starting img2img inference", {
+      model: MODEL_ID,
       prompt,
-      seed,
+      strength,
       guidanceScale,
-      numSteps,
-      height,
-      width,
+      imageGuidanceScale,
+      numInferenceSteps,
+      seed,
+      imageType: image.type,
+      imageSize: image.size,
     })
 
     const imageBlob = new Blob([await image.arrayBuffer()], {
       type: image.type || "image/png",
     })
 
-    // Connect to Qwen image edit space
-    const client = await Client.connect("serotoninboi/qwen-image-edit")
-    const result = await client.predict("/infer", {
-      images: [
-        {
-          image: imageBlob,
-          caption: null,
-        },
-      ],
-      prompt: prompt.trim(),
-      seed: randomizeSeed ? Math.floor(Math.random() * 1000000) : seed,
-      true_guidance_scale: guidanceScale,
-      num_inference_steps: numSteps,
-      height,
-      width,
-      rewrite_prompt: rewritePrompt,
+    const client = new InferenceClient(HF_TOKEN)
+    
+    const resultBlob = await client.imageToImage({
+      model: MODEL_ID,
+      inputs: imageBlob,
+      parameters: {
+        prompt,
+        negative_prompt: negativePrompt,
+        strength,
+        guidance_scale: guidanceScale,
+        // instruct-pix2pix specific — ignored by other models
+        image_guidance_scale: imageGuidanceScale,
+        num_inference_steps: numInferenceSteps,
+        seed,
+      },
     })
 
-    const outputGallery = result.data[0]
-    const usedSeed = result.data[1]
+    // Convert blob → base64 data URL for immediate frontend consumption
+    const arrayBuffer = await resultBlob.arrayBuffer()
+    const base64 = Buffer.from(arrayBuffer).toString("base64")
+    const mimeType = resultBlob.type || "image/png"
+    const dataUrl = `data:${mimeType};base64,${base64}`
 
-    if (!outputGallery || !outputGallery[0]) {
-      throw new Error("No image generated from Qwen API")
-    }
+    console.log("[hf-img2img] Inference successful", {
+      model: MODEL_ID,
+      seed,
+      outputBytes: arrayBuffer.byteLength,
+    })
 
-    const generatedImage = outputGallery[0].image.url
-    console.log("[image-edit] Image edit successful:", { generatedImage, seed: usedSeed })
-
-    return NextResponse.json({ result: generatedImage, seed: usedSeed })
+    return NextResponse.json({
+      result: dataUrl,
+      seed,
+      model: MODEL_ID,
+    })
   } catch (err) {
-    console.error("[image-edit] Unexpected error:", err)
+    console.error("[hf-img2img] Inference error:", err)
+
+    // Surface HF API errors clearly (model loading, rate limits, etc.)
     const errorMessage = err instanceof Error ? err.message : "Unknown error"
+    const isModelLoading = errorMessage.toLowerCase().includes("loading")
+
     return NextResponse.json(
-      { message: `Failed to edit image: ${errorMessage}` },
-      { status: 500 }
+      {
+        message: isModelLoading
+          ? "Model is loading, please retry in ~20 seconds"
+          : `img2img inference failed: ${errorMessage}`,
+        retryable: isModelLoading,
+      },
+      { status: isModelLoading ? 503 : 500 }
     )
   }
 }
