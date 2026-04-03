@@ -3,33 +3,18 @@
     "middleware.ts",
     "next.config.js"
   ],
-  "project": [
-    "app/**/*.{ts,tsx}",
-    "components/**/*.{ts,tsx}",
-    "lib/**/*.{ts,tsx}",
-    "hooks/**/*.{ts,tsx}",
-    "types/**/*.{ts,tsx}",
-    "middleware.ts",
-    "next.config.ts",
-    "next.config.js",
-    "tailwind.config.ts",
-    "postcss.config.js"
+  "ignoreFiles": [
+    "*.md", "*.txt", "*.json",
+   ],
+   "ignoreDependencies": [
+     "react-dom/server",
+     "@next/font/google",
+     "@testing-library/jest-dom"
   ],
+  "project": ["app/*.{ts,tsx}"],
   "ignoreBinaries": [
     "code"
   ],
-  "ignoreExportsUsedInFile": true,
-  "ignoreDependencies": [
-    "@clerk/nextjs",
-    "@clerk/ui",
-    "@huggingface/inference",
-    "axios",
-    "bcryptjs",
-    "framer-motion",
-    "jsonwebtoken",
-    "lucide-react",
-    "sharp",
-    "zustand"
-  ]
+  "ignoreExportsUsedInFile": true
 }
 
