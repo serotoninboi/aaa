@@ -8,6 +8,8 @@ node_modules
 .github
 certificates
 .env*
+!data/db.json.example
+data/db.json
 # clerk configuration (can include secrets)
 /.clerk/
 .pnpm-store

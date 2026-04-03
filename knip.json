@@ -1,35 +1,17 @@
 {
   "entry": [
-    "middleware.ts",
-    "next.config.js"
+        "components/**/*.{ts,tsx}",
+
+    "app/**/*.{ts,tsx}",
+    "app/layout.tsx",
+    "app/**/page.tsx",
+    "app/**/layout.tsx"
   ],
   "project": [
-    "app/**/*.{ts,tsx}",
-    "components/**/*.{ts,tsx}",
-    "lib/**/*.{ts,tsx}",
-    "hooks/**/*.{ts,tsx}",
-    "types/**/*.{ts,tsx}",
-    "middleware.ts",
-    "next.config.ts",
-    "next.config.js",
-    "tailwind.config.ts",
-    "postcss.config.js"
-  ],
-  "ignoreBinaries": [
-    "code"
-  ],
-  "ignoreExportsUsedInFile": true,
-  "ignoreDependencies": [
-    "@clerk/nextjs",
-    "@clerk/ui",
-    "@huggingface/inference",
-    "axios",
-    "bcryptjs",
-    "framer-motion",
-    "jsonwebtoken",
-    "lucide-react",
-    "sharp",
-    "zustand"
+    "**/*.{js,jsx,ts,tsx}",
+    "!node_modules/**/*",
+    "!dist/**/*",
+    "!build/**/*",
+    "!coverage/**/*"
   ]
 }
-

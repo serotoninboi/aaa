@@ -1,0 +1,20 @@
+{
+  "ignore": {
+    "files": [
+      "c:/Users/Shadow/Projects/aaa/app/not-found.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/layout.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/pricing/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/studio/face-swap/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/studio/image-edit/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/(auth)/layout.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/(auth)/loading.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/(auth)/login/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/(auth)/register/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/studio/pose-edit/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/studio/layout.tsx",
+      "c:/Users/Shadow/Projects/aaa/app/account/page.tsx",
+      "c:/Users/Shadow/Projects/aaa/tailwind.config.ts"
+    ]
+  }
+}

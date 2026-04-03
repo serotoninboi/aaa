@@ -2,8 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import { useAuth } from '@clerk/nextjs'
-import { ImageInput } from '@/components/ImageInput'
-import { GeneratorHeader } from '@/components/GeneratorHeader'
+import { ImageInput } from '@/components/features/ImageInput'
+import { GeneratorHeader } from '@/components/features/GeneratorHeader'
 import { Users, Sparkles, Download } from 'lucide-react'
 import { motion } from 'framer-motion'
 
